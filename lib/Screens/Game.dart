@@ -1,4 +1,5 @@
 import 'package:flip_card/flip_card.dart';
+import 'package:flipit/Log/logger.dart';
 import 'package:flipit/models/FlipCard.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,17 +12,25 @@ class Game extends StatefulWidget{
 }
 
 class _GameState extends State<Game>{
+
+  @override
+  void initState() {
+    Logger.log("", "Game Init");
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(body:
-      Column(children: [
-        GridView(gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 1),
-          children: [1,2,3].map((e) => flipCard()).toList(),)
-      ],
+      SizedBox(height: MediaQuery.of(context).size.height,
+        child: Column(children: [2,3,4].map((e) => flipCard()).toList()
+        ),
       ),);
   }
 
   Widget flipCard(){
-    return FlipCard(front: Container(color: Colors.red,), back: Container(color:Colors.yellow));
+    return FlipCard(front: Container(height: 200,width: 200,
+      color: Colors.red,
+    ), back: Container(height: 200,width: 200,color:Colors.blue));
   }
 }
