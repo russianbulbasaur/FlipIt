@@ -28,6 +28,7 @@ class FlipIt extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       onGenerateRoute: generateRoute,
+      initialRoute: "/game",
     );
   }
 }
