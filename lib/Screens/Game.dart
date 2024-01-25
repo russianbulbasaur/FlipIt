@@ -1,6 +1,6 @@
 import 'package:flip_card/flip_card.dart';
 import 'package:flipit/Log/logger.dart';
-import 'package:flipit/models/FlipCard.dart';
+import 'package:flipit/models/FlipCardModel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -22,15 +22,33 @@ class _GameState extends State<Game>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(body:
-      SizedBox(height: MediaQuery.of(context).size.height,
-        child: Column(children: [2,3,4].map((e) => flipCard()).toList()
+      Container(margin: const EdgeInsets.all(10),
+        child: Center(
+          child: Column(mainAxisSize: MainAxisSize.min,children:[
+            SizedBox(height: 200*4,
+              child: GridView(gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3,
+              crossAxisSpacing: 24,mainAxisSpacing: 24),
+              children: List.filled(12, 0).map((e) => flipCard(null)).toList(),),
+            )
+          ]
+          ),
         ),
       ),);
   }
 
-  Widget flipCard(){
-    return FlipCard(front: Container(height: 200,width: 200,
+  Widget flipCard(FlipCardModel? card){
+    return FlipCard(front: Container(height: 10,width: 10,
       color: Colors.red,
-    ), back: Container(height: 200,width: 200,color:Colors.blue));
+    ), back: Container(height: 10,width: 10,color:Colors.blue),
+    onFlipDone: (isFront){
+
+    },);
+  }
+
+  Widget flipCardFront(){
+    return Card();
+  }
+  Widget flipCardBack(){
+    return Card();
   }
 }
