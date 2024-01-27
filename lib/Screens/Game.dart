@@ -1,7 +1,8 @@
-import 'package:flip_card/flip_card.dart';
+import 'dart:math';
+
+import 'package:flipit/CustomWidgets/FlipCard.dart';
 import 'package:flipit/Log/logger.dart';
 import 'package:flipit/models/FlipCardModel.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Game extends StatefulWidget{
@@ -11,44 +12,131 @@ class Game extends StatefulWidget{
   State<StatefulWidget> createState() => _GameState();
 }
 
-class _GameState extends State<Game>{
-
+class _GameState extends State<Game> with TickerProviderStateMixin{
+  
+  late double screenHeight;
+  late double screenWidth;
+  int allowRotation = 30;
+  int imageCount = 9;
+  double cardSize = 85;
+  late List<FlipCardModel> cards;
+  late AnimationController distributorAnimationContoller;
+  late Animation<double> distributorAnimation;
+  
   @override
   void initState() {
     Logger.log("", "Game Init");
+    distributorAnimationContoller = AnimationController(vsync: this,
+        duration: const Duration(seconds: 3));
+    distributorAnimation = Tween<double>(end: 5,begin: 0).
+    chain(CurveTween(curve: Curves.easeInCubic)).
+    animate(distributorAnimationContoller);
     super.initState();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(body:
-      Container(margin: const EdgeInsets.all(10),
-        child: Center(
-          child: Column(mainAxisSize: MainAxisSize.min,children:[
-            SizedBox(height: 200*4,
-              child: GridView(gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3,
-              crossAxisSpacing: 24,mainAxisSpacing: 24),
-              children: List.filled(12, 0).map((e) => flipCard(null)).toList(),),
-            )
-          ]
-          ),
-        ),
-      ),);
+  void dispose() {
+    distributorAnimationContoller.dispose();
+    super.dispose();
   }
 
-  Widget flipCard(FlipCardModel? card){
-    return FlipCard(front: Container(height: 10,width: 10,
-      color: Colors.red,
-    ), back: Container(height: 10,width: 10,color:Colors.blue),
-    onFlipDone: (isFront){
+  @override
+  Widget build(BuildContext context) {
+    int a = 0;
+    cards = List.filled(imageCount*2, 0).map((e){
+      FlipCardModel card = FlipCardModel(id: a, image: "", size: Size(2,3),
+                                        widget:flipCard(a++));
+      return card;
+    }).toList();
+    screenHeight = MediaQuery.of(context).size.height;
+    screenWidth = MediaQuery.of(context).size.width;
+    return Scaffold(body:
+      Stack(children: [
+        layerOne(),
+        layerTwo()
+      ],),);
+  }
 
-    },);
+  Widget layerOne(){
+    return Container(decoration: const BoxDecoration(color: Colors.blue),);
+  }
+
+  Widget layerTwo(){
+    return Stack(alignment: Alignment.center,children: [
+      cardAreaBackground(),
+      cardArea()
+    ],);
+  }
+
+  Widget cardAreaBackground(){
+    return Container(margin: const EdgeInsets.only(left: 20,right: 20,top: 20,bottom: 90),
+      decoration: BoxDecoration(
+      color: const Color.fromRGBO(30, 20, 49, 0.5),
+      border: Border.all(color: Colors.black,width: 10,style: BorderStyle.solid,),
+        borderRadius: BorderRadius.circular(20)
+    ),);
+  }
+
+  void distribute(){
+    distributorAnimationContoller..reset()..forward();
+  }
+
+  Widget tapHere(){
+    return Padding(padding: EdgeInsets.zero,child: InkWell(onTap: (){
+      distribute();
+    },child: Text("Tap here")),);
+  }
+
+
+  Widget cardArea(){
+    List<Widget> stackedCards = cards.map((e){
+      int id = e.id!;
+      return Padding(padding: EdgeInsets.only(top: ((imageCount*2 - id)).toDouble()),child: e.widget,);
+    }).toList();
+    stackedCards.add(tapHere());
+    return Container(margin: const EdgeInsets.only(left: 30,right: 30,bottom: 50),
+      height: (6*cardSize) + (24*5),
+      width: 3*(cardSize) + (24*2),
+      child: Stack(alignment: Alignment.center,children:stackedCards)
+    );
+  }
+
+  Widget flipCard(int id){
+    double angle = Random().nextInt(20).toDouble();
+    angle = (Random().nextInt(200)%2==0)?angle:-angle;
+    return AnimatedBuilder(
+      animation: distributorAnimation,
+      builder: (context,widget){
+        return  Transform(
+          alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..translate(distributorAnimation.value*id,
+              distributorAnimation.value*id,distributorAnimation.value*id,)
+          ..rotateZ(angle),
+          child: FlipCard(front: flipCardFront(), back: flipCardBack(),
+            onFlip: (state){},),
+        );
+      },
+    );
   }
 
   Widget flipCardFront(){
-    return Card();
+    return SizedBox(height: cardSize,
+      width: cardSize,
+      child: Card(
+        semanticContainer: true,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(color: Colors.white,margin: const EdgeInsets.all(10),
+               child: Container(decoration: BoxDecoration(color: Colors.yellow,
+                                           borderRadius: BorderRadius.circular(5)),),),),
+    );
   }
+
   Widget flipCardBack(){
-    return Card();
+    return Card(elevation: 20,shadowColor: Colors.grey,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(color: Colors.white,margin: const EdgeInsets.all(10),
+        child: Container(decoration: BoxDecoration(color: Colors.yellow,
+            borderRadius: BorderRadius.circular(5)),),),);
   }
 }

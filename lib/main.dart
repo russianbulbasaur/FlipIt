@@ -23,12 +23,14 @@ class FlipIt extends StatelessWidget {
   Widget build(BuildContext context) {
     Logger.log("Resources object",resources.hashCode.toString());
     return MaterialApp(
+      debugShowMaterialGrid: false,
       title: 'FlipIt',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       onGenerateRoute: generateRoute,
       initialRoute: "/game",
+      debugShowCheckedModeBanner: false,
     );
   }
 }
