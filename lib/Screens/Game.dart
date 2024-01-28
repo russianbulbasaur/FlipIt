@@ -22,14 +22,22 @@ class _GameState extends State<Game> with TickerProviderStateMixin{
   late List<FlipCardModel> cards;
   late AnimationController distributorAnimationContoller;
   late Animation<double> distributorAnimation;
-  
+  bool disableTap = false;
+
   @override
   void initState() {
     Logger.log("", "Game Init");
     distributorAnimationContoller = AnimationController(vsync: this,
-        duration: const Duration(seconds: 3));
-    distributorAnimation = Tween<double>(end: 5,begin: 0).
-    chain(CurveTween(curve: Curves.easeInCubic)).
+        duration: const Duration(seconds: 4));
+    distributorAnimationContoller.addStatusListener((status) {
+      if(status==AnimationStatus.forward){
+        setState(() {
+          disableTap = true;
+        });
+      }
+    });
+    distributorAnimation = Tween<double>(end:0.67,begin: 0).
+    chain(CurveTween(curve: Curves.elasticOut)).
     animate(distributorAnimationContoller);
     super.initState();
   }
@@ -82,9 +90,13 @@ class _GameState extends State<Game> with TickerProviderStateMixin{
   }
 
   Widget tapHere(){
-    return Padding(padding: EdgeInsets.zero,child: InkWell(onTap: (){
-      distribute();
-    },child: Text("Tap here")),);
+    return Padding(padding: EdgeInsets.zero,child: Visibility(visible: !disableTap,
+      child: IgnorePointer(ignoring: disableTap,
+        child: InkWell(onTap: (){
+          distribute();
+        },child: const Text("Tap here")),
+      ),
+    ),);
   }
 
 
@@ -101,7 +113,39 @@ class _GameState extends State<Game> with TickerProviderStateMixin{
     );
   }
 
+  int calculateFactorY(int id){
+    switch(id~/3){
+      case 0:
+        return -5;
+      case 1:
+        return -3;
+      case 2:
+        return -1;
+      case 3:
+        return 1;
+      case 4:
+        return 3;
+      case 5:
+        return 5;
+      default:
+        return 0;
+    }
+  }
+
+  int calculateFactorX(int id){
+    switch(id%3){
+      case 0:
+        return -2;
+      case 2:
+        return 2;
+      default:
+        return 0;
+    }
+  }
+
   Widget flipCard(int id){
+    int factorX = calculateFactorX(id);
+    int factorY = calculateFactorY(id);
     double angle = Random().nextInt(20).toDouble();
     angle = (Random().nextInt(200)%2==0)?angle:-angle;
     return AnimatedBuilder(
@@ -110,8 +154,8 @@ class _GameState extends State<Game> with TickerProviderStateMixin{
         return  Transform(
           alignment: Alignment.center,
         transform: Matrix4.identity()
-          ..translate(distributorAnimation.value*id,
-              distributorAnimation.value*id,distributorAnimation.value*id,)
+          ..translate(distributorAnimation.value*cardSize*factorX,
+              distributorAnimation.value*cardSize*factorY,0)
           ..rotateZ(angle),
           child: FlipCard(front: flipCardFront(), back: flipCardBack(),
             onFlip: (state){},),
